@@ -5,9 +5,8 @@
 
 #include "scbloader.h"
 
-SCB scb_load(char *path)
+SCB scb_load_bin(char *path)
 {
-
     SCB scb = calloc(1, sizeof(struct SCB));
 
     scb->path = path;
@@ -25,30 +24,100 @@ SCB scb_load(char *path)
     fread(&(scb->center),  1, sizeof(float3), file);
     fread(&(scb->extents), 1, sizeof(float3), file);
 
-    printf("Reading %d vertices (of size %d)\n", scb->nVerts, sizeof(float3));
+    //printf("Reading %d vertices (of size %d)\n", scb->nVerts, sizeof(float3));
     scb->verts =   calloc(scb->nVerts, sizeof(float3));
     fread(scb->verts,     scb->nVerts, sizeof(float3), file);
     fseek(file, sizeof(float3), SEEK_CUR); // apparently we need to skip one in order to get meaningful data...
 
     long int pos = ftell(file);
-    printf("At offset %X\n", pos);
+    //printf("At offset %X\n", pos);
 
-    printf("Reading %d faces (of size %d)\n", scb->nFaces, sizeof(face));
+    //printf("Reading %d faces (of size %d)\n", scb->nFaces, sizeof(face));
     scb->faceslist = calloc(scb->nFaces, sizeof(face));
     fread(scb->faceslist,   scb->nFaces, sizeof(face), file);
 
     fclose(file);
     return scb;
+}
 
+SCB scb_load_txt(char *path)
+{
+    SCB scb = calloc(1, sizeof(struct SCB));
+    scb->path = path;
+    FILE *file = fopen(path, "r");
+    
+    const int max_line_len = 16;
+    char line[max_line_len];
+    fgets(line, max_line_len, file); // [ObjectBegin]
+    //puts(line);
+    fscanf(file, "Name= %128s\n", &(scb->object_name));
+    //printf("Name= %s\n", scb->object_name);
+    fscanf(file, "CentralPoint= %f %f %f\n", &(scb->center[0]), &(scb->center[1]), &(scb->center[2]));
+    //printf("CentralPoint= %f %f %f\n", scb->center[0], scb->center[1], scb->center[2]);
+    fscanf(file, "Verts= %d\n", &(scb->nVerts));
+    //printf("Verts= %d\n", scb->nVerts);
+    scb->verts = calloc(scb->nVerts, sizeof(float3));
+    for(int i = 0; i < scb->nVerts; i++)
+    {
+        fscanf(file, "%f %f %f\n", &(scb->verts[i][0]), &(scb->verts[i][1]), &(scb->verts[i][2]));
+        //printf("%f %f %f\n", scb->verts[i][0], scb->verts[i][1], scb->verts[i][2]);
+    }
+    fscanf(file, "Faces= %d\n", &(scb->nFaces));
+    //printf("Faces= %d\n", scb->nFaces);
+    scb->faceslist = calloc(scb->nFaces, sizeof(face));
+    for(int i = 0; i < scb->nFaces; i++)
+    {
+        int three = 3;
+        fscanf(
+            file,
+            "%d %d %d %d %63s %f %f %f %f %f %f\n",
+            &(three),
+            &(scb->faceslist[i].indices[0]),
+            &(scb->faceslist[i].indices[1]),
+            &(scb->faceslist[i].indices[2]),
+            &(scb->faceslist[i].materialname),
+            &(scb->faceslist[i].firstfloat),
+            &(scb->faceslist[i].secondfloat),
+            &(scb->faceslist[i].thirdfloat),
+            &(scb->faceslist[i].fourthfloat),
+            &(scb->faceslist[i].fifthfloat),
+            &(scb->faceslist[i].sixthfloat)
+        );
+        /*
+        //printf(
+            "%d %d %d %d %s %f %f %f %f %f %f\n",
+            three,
+            scb->faceslist[i].indices[0],
+            scb->faceslist[i].indices[1],
+            scb->faceslist[i].indices[2],
+            scb->faceslist[i].materialname,
+            scb->faceslist[i].firstfloat,
+            scb->faceslist[i].secondfloat,
+            scb->faceslist[i].thirdfloat,
+            scb->faceslist[i].fourthfloat,
+            scb->faceslist[i].fifthfloat,
+            scb->faceslist[i].sixthfloat
+        );
+        */
+    }
+    //fgets(line, max_line_len, file); // [ObjectEnd]
+    //puts(line);
+
+    fclose(file);
+    return scb;
+}
+
+SCB scb_load(char *path)
+{
+    return (!strcmp(path + strlen(path) - (sizeof(".sco") - 1), ".sco")) ? scb_load_txt(path) : scb_load_bin(path);
 }
 
 void obj_save_from_scb(SCB model)
 {
-
     char* path = calloc(1, strlen(model->path) + 4);
     sprintf(path, "%s.obj", model->path);
 
-    printf("Saving to %s\n", path);
+    //printf("Saving to %s\n", path);
     FILE *file = fopen(path, "wb");
 
     fprintf(file, "# Converted from .scb model '%s'\n", model->object_name);
@@ -70,6 +139,5 @@ void obj_save_from_scb(SCB model)
     }
 
     fclose(file);
-
 }
 
