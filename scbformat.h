@@ -12,21 +12,13 @@
 
 typedef unsigned int unsigned3[3];
 typedef float float3[3];
+typedef float float2[2];
 
 struct face
 {
     unsigned3 indices; // the indices of the verts that this triangle uses
     char materialname[64];
-
-    // These are prolly texcoords or RGB blends or vertex weights or something
-    // The numbers (first, second, third, etc.) correspond to the order the floats
-    // show up in the SCO file
-    float firstfloat;// = .375
-    float thirdfloat;// = .625
-    float fifthfloat;// = .375
-    float secondfloat;// = 0
-    float fourthfloat;// = .25
-    float sixthfloat;// = .25
+    float2 uv[3]; // texcoords
 };
 typedef struct face face;
 
