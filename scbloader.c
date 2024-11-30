@@ -19,7 +19,7 @@ SCB scb_load_bin(char *path)
 
     fread(&(scb->nVerts), 1, sizeof(unsigned), file);
     fread(&(scb->nFaces), 1, sizeof(unsigned), file);
-    fread(&(scb->unk),    1, sizeof(unsigned), file);
+    fread(&(scb->hasVCP), 1, sizeof(unsigned), file);
 
     fread(&(scb->center),  1, sizeof(float3), file);
     fread(&(scb->extents), 1, sizeof(float3), file);
@@ -76,12 +76,12 @@ SCB scb_load_txt(char *path)
             &(scb->faceslist[i].indices[1]),
             &(scb->faceslist[i].indices[2]),
             &(scb->faceslist[i].materialname),
-            &(scb->faceslist[i].uv[0][0]),
-            &(scb->faceslist[i].uv[0][1]),
-            &(scb->faceslist[i].uv[1][0]),
-            &(scb->faceslist[i].uv[1][1]),
-            &(scb->faceslist[i].uv[2][0]),
-            &(scb->faceslist[i].uv[2][1])
+            &(scb->faceslist[i].uvx[0]),
+            &(scb->faceslist[i].uvy[0]),
+            &(scb->faceslist[i].uvx[1]),
+            &(scb->faceslist[i].uvy[1]),
+            &(scb->faceslist[i].uvx[2]),
+            &(scb->faceslist[i].uvy[2])
         );
         /*
         //printf(
@@ -91,12 +91,12 @@ SCB scb_load_txt(char *path)
             scb->faceslist[i].indices[1],
             scb->faceslist[i].indices[2],
             scb->faceslist[i].materialname,
-            scb->faceslist[i].uv[0][0],
-            scb->faceslist[i].uv[0][1],
-            scb->faceslist[i].uv[1][0],
-            scb->faceslist[i].uv[1][1],
-            scb->faceslist[i].uv[2][0],
-            scb->faceslist[i].uv[2][1]
+            scb->faceslist[i].uvx[0],
+            scb->faceslist[i].uvy[0],
+            scb->faceslist[i].uvx[1],
+            scb->faceslist[i].uvy[1],
+            scb->faceslist[i].uvx[2],
+            scb->faceslist[i].uvy[2]
         );
         */
     }
@@ -134,9 +134,9 @@ void obj_save_from_scb(SCB model)
     for(int i = 0; i < model->nFaces; i++)
     {
         face f = model->faceslist[i];
-        fprintf(file, "vt %.4f %.4f\n", f.uv[0][0], 1.0 - f.uv[0][1]);
-        fprintf(file, "vt %.4f %.4f\n", f.uv[1][0], 1.0 - f.uv[1][1]);
-        fprintf(file, "vt %.4f %.4f\n", f.uv[2][0], 1.0 - f.uv[2][1]);
+        fprintf(file, "vt %.12f %.12f\n", f.uvx[0], 1.0 - f.uvy[0]);
+        fprintf(file, "vt %.12f %.12f\n", f.uvx[1], 1.0 - f.uvy[1]);
+        fprintf(file, "vt %.12f %.12f\n", f.uvx[2], 1.0 - f.uvy[2]);
     }
 
     //fprintf(file, "\n# Faces\n", model->object_name);

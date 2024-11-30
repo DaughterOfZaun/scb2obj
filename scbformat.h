@@ -18,7 +18,8 @@ struct face
 {
     unsigned3 indices; // the indices of the verts that this triangle uses
     char materialname[64];
-    float2 uv[3]; // texcoords
+    float3 uvx; // texcoords
+    float3 uvy;
 };
 typedef struct face face;
 
@@ -35,7 +36,7 @@ struct SCB
 
     unsigned nVerts;
     unsigned nFaces;
-    unsigned unk; // nSections? Always equals 1
+    unsigned hasVCP; // Always equals 1
 
     float3 center;
     float3 extents;
@@ -43,9 +44,7 @@ struct SCB
 
     face *faceslist; // nFaces
 
-    // Padding
-    unsigned zeros_padding[6];
-    char zero_padding; // what the heck!?
+    char zero_padding[25]; // Padding
 };
 typedef struct SCB* SCB;
 
